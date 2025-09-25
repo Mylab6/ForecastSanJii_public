@@ -1,0 +1,432 @@
+[gd_scene load_steps=6 format=3 uid="uid://ciini8y6tkd2v"]
+
+[ext_resource type="Script" uid="uid://dxtdw7qf3yej6" path="res://scripts/core/WeatherForecastGame.gd" id="1_2m8h9"]
+[ext_resource type="PackedScene" uid="uid://bq7x8d2m5yh3k" path="res://SimpleRadar.tscn" id="2_simple_radar"]
+[ext_resource type="Script" uid="uid://8f4epf3cgmoi" path="res://scripts/ui/GameUIHandler.gd" id="3_ui_handler"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_action"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_priority"]
+
+[node name="WeatherForecastGame" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2m8h9")
+
+[node name="StartMenu" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="StartMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.1, 0.2, 1)
+
+[node name="TitleLabel" type="Label" parent="StartMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "SAN JII METRO EMERGENCY WEATHER FORECASTER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="StartMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -80.0
+offset_right = 250.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Professional Doppler Radar Decision-Making Simulation"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartButton" type="Button" parent="StartMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "BEGIN DUTY"
+
+[node name="InstructionsLabel" type="Label" parent="StartMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "You are the Chief Meteorologist for San Jii Metro.
+Make critical weather decisions to protect 3.75 million residents.
+WARNING: False evacuation orders result in immediate termination!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameUI" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_ui_handler")
+
+[node name="RadarDisplay" type="Control" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -440.0
+offset_right = 650.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="SimpleRadar" parent="GameUI/RadarDisplay" instance=ExtResource("2_simple_radar")]
+layout_mode = 1
+
+[node name="NewsSegment" type="Control" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 200.0
+grow_horizontal = 0
+
+[node name="NewsBackground" type="ColorRect" parent="GameUI/NewsSegment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.05, 0.05, 0.9)
+
+[node name="NewsTitle" type="Label" parent="GameUI/NewsSegment"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+text = "📡 SAN JII METRO EMERGENCY WEATHER"
+horizontal_alignment = 1
+
+[node name="NewsText" type="RichTextLabel" parent="GameUI/NewsSegment"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 35.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "Monitoring weather conditions..."
+
+[node name="QuestionPanel" type="Control" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -300.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="QuestionsBackground" type="ColorRect" parent="GameUI/QuestionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.1, 0.05, 0.9)
+
+[node name="Question1" type="VBoxContainer" parent="GameUI/QuestionPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 100.0
+grow_horizontal = 2
+
+[node name="Q1Label" type="Label" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "1. AFFECTED AREAS (Multi-Select):"
+
+[node name="Q1_CIUDADLONG" type="CheckBox" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "CIUDADLONG (Capital)"
+
+[node name="Q1_PUERTOSHAN" type="CheckBox" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "PUERTOSHAN (Port)"
+
+[node name="Q1_MONTAÑAWEI" type="CheckBox" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "MONTAÑAWEI (Tech Hub)"
+
+[node name="Q1_PLAYAHAI" type="CheckBox" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "PLAYAHAI (Beach Resort)"
+
+[node name="Q1_VALLEGU" type="CheckBox" parent="GameUI/QuestionPanel/Question1"]
+layout_mode = 2
+text = "VALLEGU (Agricultural)"
+
+[node name="Question2" type="VBoxContainer" parent="GameUI/QuestionPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 110.0
+offset_right = -10.0
+offset_bottom = 200.0
+grow_horizontal = 2
+
+[node name="Q2Label" type="Label" parent="GameUI/QuestionPanel/Question2"]
+layout_mode = 2
+text = "2. RESPONSE LEVEL (Choose One):"
+
+[node name="Q2_NONE" type="RadioButton" parent="GameUI/QuestionPanel/Question2"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_action")
+text = "NONE - No Action Required"
+script = null
+
+[node name="Q2_ADVISORY" type="RadioButton" parent="GameUI/QuestionPanel/Question2"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_group = SubResource("ButtonGroup_action")
+text = "WEATHER ADVISORY"
+script = null
+
+[node name="Q2_SHELTER" type="RadioButton" parent="GameUI/QuestionPanel/Question2"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_group = SubResource("ButtonGroup_action")
+text = "SHELTER IN PLACE"
+script = null
+
+[node name="Q2_EVACUATE" type="RadioButton" parent="GameUI/QuestionPanel/Question2"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_group = SubResource("ButtonGroup_action")
+text = "🚨 EVACUATE NOW 🚨"
+script = null
+
+[node name="Question3" type="VBoxContainer" parent="GameUI/QuestionPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 210.0
+offset_right = -10.0
+offset_bottom = 280.0
+grow_horizontal = 2
+
+[node name="Q3Label" type="Label" parent="GameUI/QuestionPanel/Question3"]
+layout_mode = 2
+text = "3. PRIORITY LEVEL:"
+
+[node name="Q3_LOW" type="RadioButton" parent="GameUI/QuestionPanel/Question3"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_priority")
+text = "LOW Priority"
+script = null
+
+[node name="Q3_MEDIUM" type="RadioButton" parent="GameUI/QuestionPanel/Question3"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_group = SubResource("ButtonGroup_priority")
+text = "MEDIUM Priority"
+script = null
+
+[node name="Q3_HIGH" type="RadioButton" parent="GameUI/QuestionPanel/Question3"]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+layout_mode = 2
+button_group = SubResource("ButtonGroup_priority")
+text = "HIGH Priority"
+script = null
+
+[node name="ScorePanel" type="Control" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 420.0
+offset_top = -100.0
+offset_right = 800.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="ScoreBackground" type="ColorRect" parent="GameUI/ScorePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.1, 0.8)
+
+[node name="RatingLabel" type="Label" parent="GameUI/ScorePanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+grow_horizontal = 2
+text = "RATING: 50/100 - Staff Meteorologist"
+
+[node name="StatsLabel" type="Label" parent="GameUI/ScorePanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 45.0
+offset_right = -10.0
+offset_bottom = 80.0
+grow_horizontal = 2
+text = "Round 1 | Accuracy: 100% | Streak: 0"
+
+[node name="TimerPanel" type="Control" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 220.0
+offset_right = -10.0
+offset_bottom = 270.0
+grow_horizontal = 0
+
+[node name="TimerBackground" type="ColorRect" parent="GameUI/TimerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.1, 0.1, 0.9)
+
+[node name="TimerLabel" type="Label" parent="GameUI/TimerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "TIME: 01:30"
+horizontal_alignment = 1
+vertical_alignment = 1

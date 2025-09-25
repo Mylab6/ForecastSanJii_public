@@ -1,0 +1,68 @@
+{
+  "radar_settings": {
+    "base_radius_multiplier": 0.48,
+    "sweep_speed": 0.5,
+    "persistence_time": 2.0,
+    "max_echoes": 100,
+    "weather_update_interval": 8.0,
+    "temperature_update_interval": 30.0
+  },
+  "weather_system": {
+    "weather_types": [
+      "Clear",
+      "Light Rain",
+      "Heavy Rain", 
+      "Thunderstorm",
+      "Severe Storm",
+      "Snow",
+      "Blizzard"
+    ],
+    "severity_levels": [
+      "None",
+      "Low", 
+      "Medium",
+      "High",
+      "Extreme"
+    ],
+    "action_levels": [
+      "None",
+      "Caution",
+      "Shelter",
+      "Evacuate"
+    ]
+  },
+  "population_dynamics": {
+    "migration_enabled": true,
+    "migration_rate": 0.05,
+    "weather_influence_factor": 0.3,
+    "distance_penalty": 0.1,
+    "max_migration_distance": 0.4,
+    "recovery_rate": 0.02,
+    "evacuation_compliance": 0.85
+  },
+  "game_mechanics": {
+    "decision_timer": 90.0,
+    "scoring_enabled": true,
+    "career_progression": true,
+    "difficulty_scaling": true,
+    "debug_mode": false
+  },
+  "display_settings": {
+    "text_scale_factor": 1.5,
+    "show_population_changes": true,
+    "show_weather_logs": true,
+    "show_migration_arrows": false,
+    "alert_threshold": 0.7
+  },
+  "audio_settings": {
+    "master_volume": 0.8,
+    "weather_sounds": true,
+    "voice_alerts": true,
+    "radio_chatter": true
+  },
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-01-16",
+    "description": "San Jii Metro Weather Game Settings"
+  }
+}

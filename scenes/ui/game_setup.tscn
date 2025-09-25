@@ -1,0 +1,62 @@
+[gd_scene load_steps=3 format=3 uid="uid://ba8h2g8pqfwh8"]
+
+[ext_resource type="Script" path="res://scripts/core/GameSetup.gd" id="1_0v5pm"]
+
+[sub_resource type="Theme" id="Theme_1yb7d"]
+default_font_size = 16
+
+[node name="GameSetup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = SubResource("Theme_1yb7d")
+script = ExtResource("1_0v5pm")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.2, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Forecast San Jii - Setup"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="CityCountContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="CityCountLabel" type="Label" parent="VBoxContainer/CityCountContainer"]
+layout_mode = 2
+text = "Number of Cities:"
+
+[node name="CityCountSpinBox" type="SpinBox" parent="VBoxContainer/CityCountContainer"]
+layout_mode = 2
+min_value = 3.0
+max_value = 7.0
+step = 2.0
+value = 5.0
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Start Weather Simulation"

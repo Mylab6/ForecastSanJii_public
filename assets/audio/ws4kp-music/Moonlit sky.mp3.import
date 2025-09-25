@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b2eprqjk2l566"
+path="res://.godot/imported/Moonlit sky.mp3-9d3ced5ff9e793cfe22b1d98a6c1f5de.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/ws4kp-music/Moonlit sky.mp3"
+dest_files=["res://.godot/imported/Moonlit sky.mp3-9d3ced5ff9e793cfe22b1d98a6c1f5de.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

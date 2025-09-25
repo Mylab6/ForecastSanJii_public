@@ -1,0 +1,60 @@
+{
+  "cities": {
+    "CIUDADLONG": {
+      "position": [0.45, 0.35],
+      "name": "Ciudad Long",
+      "starting_population": 125000,
+      "elevation": 45,
+      "type": "urban",
+      "description": "Major metropolitan area and commercial hub"
+    },
+    "PUERTOSHAN": {
+      "position": [0.65, 0.45],
+      "name": "Puerto Shan",
+      "starting_population": 89000,
+      "elevation": 12,
+      "type": "coastal",
+      "description": "Primary seaport and fishing industry center"
+    },
+    "MONTAÑAWEI": {
+      "position": [0.35, 0.32],
+      "name": "Montaña Wei",
+      "starting_population": 67000,
+      "elevation": 320,
+      "type": "mountain",
+      "description": "Mountain resort town and mining community"
+    },
+    "PLAYAHAI": {
+      "position": [0.75, 0.65],
+      "name": "Playa Hai",
+      "starting_population": 45000,
+      "elevation": 8,
+      "type": "beach",
+      "description": "Tourist beach resort and vacation destination"
+    },
+    "VALLEGU": {
+      "position": [0.25, 0.55],
+      "name": "Valle Gu",
+      "starting_population": 38000,
+      "elevation": 125,
+      "type": "agricultural",
+      "description": "Agricultural valley and farming community"
+    },
+    "BAHÍA AZUL": {
+      "position": [0.55, 0.75],
+      "name": "Bahía Azul",
+      "starting_population": 28000,
+      "elevation": 5,
+      "type": "coastal",
+      "description": "Small coastal bay town and marina"
+    }
+  },
+  "metadata": {
+    "coordinate_system": "normalized",
+    "coordinate_range": "0.0 to 1.0",
+    "temperature_range": "70-88°F (tropical climate)",
+    "last_updated": "2025-01-16",
+    "total_cities": 6,
+    "total_population": 407000
+  }
+}

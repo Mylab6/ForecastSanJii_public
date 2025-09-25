@@ -1,0 +1,46 @@
+{
+  "frames": [
+    {
+      "timestamp": "2025-07-14T12:00:00Z",
+      "cells": [
+        {
+          "id": 1,
+          "polygon": [[100,100],[120,110],[115,130],[95,125]],
+          "reflectivity": 45,
+          "direction_deg": 60,
+          "speed_px_per_frame": 3,
+          "lightning": false
+        },
+        {
+          "id": 2,
+          "polygon": [[200,200],[230,210],[225,240],[195,235]],
+          "reflectivity": 60,
+          "direction_deg": 120,
+          "speed_px_per_frame": 2,
+          "lightning": true
+        }
+      ]
+    },
+    {
+      "timestamp": "2025-07-14T12:00:10Z",
+      "cells": [
+        {
+          "id": 1,
+          "polygon": [[103,102],[123,112],[118,132],[98,127]],
+          "reflectivity": 47,
+          "direction_deg": 60,
+          "speed_px_per_frame": 3,
+          "lightning": false
+        },
+        {
+          "id": 2,
+          "polygon": [[204,204],[234,214],[229,244],[199,239]],
+          "reflectivity": 62,
+          "direction_deg": 120,
+          "speed_px_per_frame": 2,
+          "lightning": false
+        }
+      ]
+    }
+  ]
+}

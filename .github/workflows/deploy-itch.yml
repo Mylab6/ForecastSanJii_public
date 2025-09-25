@@ -1,0 +1,56 @@
+name: Deploy to itch.io
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Godot
+      uses: chickensoft-games/setup-godot@v1
+      with:
+        version: 4.4.1
+        include-templates: true
+
+    - name: Export Web Build
+      run: |
+        mkdir -p build
+        godot --headless --export-release "Web" build/ForcastSanJii.html
+        # Move all web export files to build directory
+        mv ForcastSanJii.* build/ 2>/dev/null || true
+
+    - name: Package Web Build into Zip
+      run: |
+        cd build/
+        # Package the Godot web build into a zip file
+        zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck
+
+    - name: Upload HTML5 Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: html5-build
+        path: build/forecast_sanjii_web.zip
+
+    - name: Install Butler
+      run: |
+        curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+        unzip butler.zip
+        chmod +x butler
+        sudo mv butler /usr/local/bin
+
+    - name: Login to Butler
+      run: butler login
+      env:
+        BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+
+    - name: Push HTML5 build to itch.io
+      run: butler push build/forecast_sanjii_web.zip ${{ secrets.ITCH_GAME_URL }}:html5 --userversion ${{ github.run_number }}
+      env:
+        BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}

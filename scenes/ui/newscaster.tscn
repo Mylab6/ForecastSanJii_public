@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://ckmswjkxtepam"]
+
+[ext_resource type="PackedScene" uid="uid://ddkdua1cidgds" path="res://weather_man.tscn" id="1_5x3cl"]
+
+[node name="weather_man" instance=ExtResource("1_5x3cl")]
+
+[node name="Camera" parent="." index="1"]
+transform = Transform3D(0.685921, -0.324013, 0.651558, -1.49012e-08, 0.895396, 0.445271, -0.727676, -0.305421, 0.61417, 6.19898, 5.6673, 7.14291)

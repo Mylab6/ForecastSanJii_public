@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Build artifacts
+build/
+
+# itch.io butler
+butler
+butler.zip

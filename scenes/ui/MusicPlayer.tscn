@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8w3j8x4n5m2k"]
+
+[ext_resource type="Script" uid="uid://5owtuwuaohnl" path="res://scripts/audio/MusicPlayer.gd" id="1_music_player"]
+
+[sub_resource type="GDScript" id="GDScript_1"]
+script/source = "extends AudioStreamPlayer
+
+# AudioStreamPlayer for music playback
+"
+
+[node name="MusicPlayer" type="Node"]
+script = ExtResource("1_music_player")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+script = SubResource("GDScript_1")

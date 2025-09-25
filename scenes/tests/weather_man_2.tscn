@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bs1cvkxqllwcg"]
+
+[ext_resource type="PackedScene" uid="uid://blxy3e8iuo2au" path="res://models/weather_man.blend" id="1_vnkou"]
+
+[node name="weather_man" instance=ExtResource("1_vnkou")]
+
+[node name="Light" parent="." index="0"]
+visible = false
