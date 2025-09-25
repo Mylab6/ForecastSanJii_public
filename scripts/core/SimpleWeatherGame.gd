@@ -2,8 +2,8 @@ extends Control
 
 # Simple weather game controller
 var radar_node
-var music_player
 var mute_button
+var music_started = false
 
 func _ready():
 	print("San Jii Metro Weather Emergency System started!")
@@ -15,61 +15,58 @@ func _ready():
 	else:
 		print("ERROR: Map radar not found!")
 
-	# Initialize music player
-	music_player = $MusicPlayer
-	if music_player:
-		print("Music player loaded and active")
-	else:
-		print("ERROR: Music player not found!")
-
 	# Create and setup mute button
 	_create_mute_button()
 
 func _create_mute_button():
-	"""Create a music control button for the music"""
+	"""Create a simple music control button"""
 	mute_button = Button.new()
-	mute_button.text = "▶️ Play Music"  # Start with play button for web compatibility
+	mute_button.text = "▶️ Play Music"
 	mute_button.add_theme_font_size_override("font_size", 16)
 	mute_button.add_theme_color_override("font_color", Color.WHITE)
 	mute_button.add_theme_color_override("font_shadow_color", Color.BLACK)
 	mute_button.add_theme_constant_override("shadow_offset_x", 1)
 	mute_button.add_theme_constant_override("shadow_offset_y", 1)
 
-	# Position in top-right corner
-	mute_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	mute_button.position.x -= 10
-	mute_button.position.y += 10
+	# Position in bottom-right corner
+	mute_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	mute_button.position.x -= 130
+	mute_button.position.y -= 50
 	mute_button.size = Vector2(120, 40)
 
 	# Connect signal
 	mute_button.pressed.connect(_on_mute_button_pressed)
-
-	# Connect to music player signals
-	if music_player:
-		music_player.muted_changed.connect(_on_music_muted_changed)
-		music_player.music_started.connect(_on_music_started)
-
 	add_child(mute_button)
+	print("Music button created")
 
 func _on_mute_button_pressed():
-	"""Handle music button press - starts music on first click for web compatibility"""
-	if music_player:
-		if not music_player.music_has_started:
-			# First click - start the music
-			music_player.start_music()
-		else:
-			# Subsequent clicks - toggle mute
-			music_player.toggle_mute()
-
-func _on_music_started():
-	"""Update button text when music starts playing"""
-	if mute_button:
-		mute_button.text = "🔊 Music"
-
-func _on_music_muted_changed(is_muted: bool):
-	"""Update button text when mute state changes"""
-	if mute_button and music_player.music_has_started:
-		if is_muted:
-			mute_button.text = "🔇 Music"
-		else:
+	"""Handle music button press"""
+	print("Music button pressed!")
+	
+	if not music_started:
+		# First click - try to start music via autoload
+		var global_music = get_node_or_null("/root/GlobalMusic")
+		if global_music:
+			print("Found GlobalMusic, attempting to start...")
+			# Try different methods to start music
+			if global_music.has_method("start_music"):
+				global_music.start_music()
+			elif global_music.has_method("ensure_started"):
+				global_music.ensure_started()
+			elif global_music.has_node("MusicLogic"):
+				var music_logic = global_music.get_node("MusicLogic")
+				if music_logic.has_method("start_music"):
+					music_logic.start_music()
+			music_started = true
 			mute_button.text = "🔊 Music"
+			print("Music should be starting...")
+		else:
+			print("No GlobalMusic autoload found")
+	else:
+		# Toggle mute using master bus
+		var master_bus = AudioServer.get_bus_index("Master")
+		var is_muted = AudioServer.is_bus_mute(master_bus)
+		AudioServer.set_bus_mute(master_bus, not is_muted)
+		
+		mute_button.text = "🔇 Music" if not is_muted else "🔊 Music"
+		print("Toggled mute: ", not is_muted)

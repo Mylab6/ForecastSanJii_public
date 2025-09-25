@@ -124,5 +124,14 @@ func _animate_ui_in():
 	
 	# Fade in continue button
 	tween.tween_property(continue_button, "modulate:a", 1.0, 0.8).set_delay(0.5)
-	# Return to radar demo (next round)
-	get_tree().change_scene_to_file("res://radar_demo.tscn")
+
+func _on_continue_pressed():
+	"""User wants to start next round"""
+	# Optional: ensure music keeps going (if user toggled earlier it remains)
+	if Engine.has_singleton("GlobalMusic"):
+		var gm = Engine.get_singleton("GlobalMusic")
+		if gm and gm.has_method("ensure_started"):
+			gm.ensure_started()
+
+	# Start next round by reloading the main game scene (so cumulative score persists via GameData)
+	get_tree().change_scene_to_file("res://scenes/main/SimpleWeatherGame.tscn")

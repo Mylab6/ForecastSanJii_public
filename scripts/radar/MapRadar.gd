@@ -248,6 +248,16 @@ func _end_round():
 	# Transition to NewsRoom scene
 	_transition_to_newsroom()
 
+func start_new_round():
+	"""Prepare and start a new round without recreating the node (not currently used)"""
+	round_score = 0
+	round_timer = round_duration
+	game_active = true
+	_generate_initial_weather()
+	if radar_system:
+		radar_system.set_weather_targets(weather_echoes)
+	print("New round started")
+
 func _calculate_final_score():
 	"""Calculate score based on emergency status accuracy"""
 	round_score = 0

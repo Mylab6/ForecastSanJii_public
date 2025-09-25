@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 GameData="*res://scripts/core/GameData.gd"
 flowerwall_crt="*res://addons/flowerwall_postprocess/scenes/flowerwall_pp.tscn"
 AudioManager="*res://scripts/audio/AudioManager.gd"
+GlobalMusic="*res://scenes/ui/MusicPlayer.tscn"
 
 [display]
 
