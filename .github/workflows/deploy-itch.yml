@@ -1,60 +1,30 @@
-name: Deploy to itch.io
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-# optional but nice to avoid parallel pushes clobbering each other
-concurrency:
-  group: itchio-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # run the whole job inside the prebuilt CI image (like GitLab does)
-    container: ghcr.io/abarichello/godot-ci:4.5-stable
+    container:
+      image: barichello/godot-ci:4.5-stable   # <- Docker Hub, not ghcr
     env:
-      EXPORT_PRESET: "Web"              # must match your export_presets.cfg preset name
-      ITCH_TARGET: "${{ secrets.ITCH_GAME_URL }}:html5"  # e.g. user/my-game:html5
+      EXPORT_PRESET: "Web"
+      ITCH_TARGET: "${{ secrets.ITCH_GAME_URL }}:html5"
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Show tool versions
-        run: |
+      - uses: actions/checkout@v4
+      - run: |
           godot --version || true
           butler -V || true
-
-      - name: Export HTML5 build
-        run: |
+      - run: |
           set -euo pipefail
           mkdir -p build
-          # Export as index.html for itch.io
           godot --headless --path . --export-release "$EXPORT_PRESET" "build/index.html"
-          ls -la build
-
-      - name: Zip build
-        run: |
+      - run: |
           set -euo pipefail
-          cd build
-          # zip everything Godot exported; index.html must be at the root
-          zip -qr forecast_sanjii_web.zip .
-
-      - name: Upload artifact (optional)
-        uses: actions/upload-artifact@v4
+          cd build && zip -qr forecast_sanjii_web.zip .
+      - uses: actions/upload-artifact@v4
         with:
           name: html5-build
           path: build/forecast_sanjii_web.zip
           if-no-files-found: error
-          retention-days: 7
-
-      # No 'butler login' — CI uses BUTLER_API_KEY non-interactively
-      - name: Push to itch.io
-        run: |
+      - run: |
           set -euo pipefail
           VERSION="${GITHUB_RUN_NUMBER}.${GITHUB_SHA::7}"
           butler push build/forecast_sanjii_web.zip "$ITCH_TARGET" --userversion "$VERSION"
