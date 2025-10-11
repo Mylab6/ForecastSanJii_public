@@ -8,7 +8,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:4.5-stable   # <- Docker Hub, not ghcr
+      image: barichello/godot-ci:latest   # <- Docker Hub, not ghcr
     env:
       EXPORT_PRESET: "Web"
       ITCH_TARGET: "${{ secrets.ITCH_GAME_URL }}:html5"
