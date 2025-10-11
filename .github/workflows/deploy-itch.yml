@@ -11,7 +11,7 @@ jobs:
     environment:
       name: Web                         # use your Environment name here
     container:
-      image: barichello/godot-ci:4.5-stable
+      image: barichello/godot-ci:latest
     defaults:
       run:
         shell: bash
