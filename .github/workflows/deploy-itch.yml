@@ -16,7 +16,7 @@ jobs:
     - name: Setup Godot
       uses: chickensoft-games/setup-godot@v1
       with:
-        version: 4.4.1
+        version: 4.5
         include-templates: true
         use-dotnet: false
 
@@ -24,14 +24,24 @@ jobs:
       run: |
         mkdir -p build
         godot --headless --export-release "Web" build/ForcastSanJii.html
-        # Move all web export files to build directory
-        mv ForcastSanJii.* build/ 2>/dev/null || true
+        # Check if export was successful
+        if [ ! -f "build/ForcastSanJii.html" ]; then
+          echo "Export failed - HTML file not found"
+          exit 1
+        fi
 
     - name: Package Web Build into Zip
       run: |
         cd build/
+        # Verify all required files exist before zipping
+        for file in ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck; do
+          if [ ! -f "$file" ]; then
+            echo "Missing file: $file"
+            exit 1
+          fi
+        done
         # Package the Godot web build into a zip file
-        zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck
+        zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck ForcastSanJii.png ForcastSanJii.apple-touch-icon.png 2>/dev/null || zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck
 
     - name: Upload HTML5 Build Artifact
       uses: actions/upload-artifact@v4

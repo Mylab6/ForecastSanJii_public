@@ -12,7 +12,7 @@ static func generate_cities_on_land(island_centers: Array, image_size: Vector2i,
 	var city_names = [
 		"Flying Fish Cove",
 		"Silver City", 
-		"Poon Saan",
+		"San Ji City",
 		"Drumsite",
 		"Settlement",
 		"The Dales",

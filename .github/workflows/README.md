@@ -15,6 +15,10 @@ In your GitHub repository, go to Settings → Secrets and variables → Actions 
 - `BUTLER_API_KEY`: Your itch.io API key
 - `ITCH_GAME_URL`: Your game's itch.io URL in the format `username/game-name` (e.g., `mylab6/forecast-sanjii`)
 
+**Example for this project:**
+- `BUTLER_API_KEY`: (your actual itch.io API key)
+- `ITCH_GAME_URL`: `mylab6/forecast-sanjii` (or whatever your actual itch.io project URL is)
+
 ### 3. Configure Export Preset
 Make sure your `export_presets.cfg` has a "Web" preset configured for HTML5 export.
 
@@ -33,6 +37,20 @@ Make sure your `export_presets.cfg` has a "Web" preset configured for HTML5 expo
 
 - `BUTLER_API_KEY`: Your itch.io API key for authentication
 - `ITCH_GAME_URL`: Your game's itch.io URL (username/game-name format)
+
+## Troubleshooting
+
+### Common Issues:
+1. **Export fails**: Make sure your `export_presets.cfg` has a "Web" preset configured
+2. **Butler authentication fails**: Verify your `BUTLER_API_KEY` is correct
+3. **Upload fails**: Check that your `ITCH_GAME_URL` matches your actual itch.io project URL
+4. **Missing files in zip**: The workflow now validates all required files exist before packaging
+
+### Testing the Workflow:
+1. Push any change to the `main` branch
+2. Go to Actions tab in your GitHub repository
+3. Watch the "Deploy to itch.io" workflow run
+4. Check the logs if there are any errors
 
 ## File Structure
 

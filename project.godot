@@ -13,7 +13,7 @@ config_version=5
 config/name="San Jii Metro Hurricane Radar"
 config/description="Real-time hurricane tracking for the San Jii Metropolitan Area"
 run/main_scene="res://scenes/main/SimpleWeatherGame.tscn"
-config/features=PackedStringArray("4.4", "GL Compatibility")
+config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]

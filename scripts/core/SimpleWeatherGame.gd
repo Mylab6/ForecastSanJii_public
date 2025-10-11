@@ -51,22 +51,42 @@ func _on_mute_button_pressed():
 			# Try different methods to start music
 			if global_music.has_method("start_music"):
 				global_music.start_music()
+				print("Called GlobalMusic.start_music()")
 			elif global_music.has_method("ensure_started"):
 				global_music.ensure_started()
+				print("Called GlobalMusic.ensure_started()")
 			elif global_music.has_node("MusicLogic"):
 				var music_logic = global_music.get_node("MusicLogic")
 				if music_logic.has_method("start_music"):
 					music_logic.start_music()
-			music_started = true
-			mute_button.text = "🔊 Music"
-			print("Music should be starting...")
+					print("Called MusicLogic.start_music()")
+			
+			# Wait a brief moment and check if music is playing
+			await get_tree().create_timer(0.5).timeout
+			if global_music.has_method("is_playing") and global_music.is_playing():
+				music_started = true
+				mute_button.text = "🔊 Music (On)"
+				print("Music successfully started!")
+			else:
+				print("Music failed to start - check audio files and browser autoplay policy")
+				# Check if player was resolved
+				if global_music.has_node("MusicLogic"):
+					var music_logic = global_music.get_node("MusicLogic")
+					print("MusicLogic tracks: ", music_logic.music_tracks.size() if "music_tracks" in music_logic else "N/A")
+				mute_button.text = "❌ No Music"
 		else:
-			print("No GlobalMusic autoload found")
+			print("ERROR: No GlobalMusic autoload found")
+			mute_button.text = "❌ No Music"
 	else:
-		# Toggle mute using master bus
+		# Toggle between max volume (0dB) and silent (-80dB)
 		var master_bus = AudioServer.get_bus_index("Master")
-		var is_muted = AudioServer.is_bus_mute(master_bus)
-		AudioServer.set_bus_mute(master_bus, not is_muted)
+		var current_volume = AudioServer.get_bus_volume_db(master_bus)
 		
-		mute_button.text = "🔇 Music" if not is_muted else "🔊 Music"
-		print("Toggled mute: ", not is_muted)
+		if current_volume > -40:  # If volume is audible
+			AudioServer.set_bus_volume_db(master_bus, -80.0)  # Set to silent
+			mute_button.text = "🔇 Music (Off)"
+			print("Volume set to 0")
+		else:
+			AudioServer.set_bus_volume_db(master_bus, 0.0)  # Set to max
+			mute_button.text = "🔊 Music (On)"
+			print("Volume set to max")

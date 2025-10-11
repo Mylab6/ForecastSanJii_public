@@ -5,7 +5,7 @@ class_name CityManager extends RefCounted
 static var available_city_names: Array[String] = [
 	"Flying Fish Cove",
 	"Silver City", 
-	"Poon Saan",
+	"San Ji City",
 	"Drumsite",
 	"Settlement",
 	"The Dales",

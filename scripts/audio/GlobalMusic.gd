@@ -30,11 +30,29 @@ func _on_muted_changed(is_muted: bool):
 func _resolve_player():
 	if player and is_instance_valid(player):
 		return
+	
 	if has_node("MusicLogic"):
 		var candidate = get_node("MusicLogic")
+		print("MusicLogic node class: ", candidate.get_class())
+		print("MusicLogic script: ", candidate.get_script())
+		print("Has start_music: ", candidate.has_method("start_music"))
+		
 		# Check if it has the MusicPlayer methods instead of type check
 		if candidate and candidate.has_method("start_music"):
 			player = candidate
+			print("GlobalMusic player resolved: ", player.get_class())
+		else:
+			print("ERROR: MusicLogic found but no start_music method")
+			# Force call the script's _ready if it exists
+			if candidate.has_method("_ready"):
+				print("Calling MusicLogic._ready()...")
+				candidate._ready()
+	else:
+		print("ERROR: No MusicLogic child node found")
+		var child_names = []
+		for child in get_children():
+			child_names.append(child.name)
+		print("Available children: ", child_names)
 
 func ensure_started():
 	_resolve_player()
@@ -69,4 +87,7 @@ var music_has_started: bool:
 func start_music():
 	_resolve_player()
 	if player and player.has_method("start_music"):
+		print("GlobalMusic starting player...")
 		player.start_music()
+	else:
+		print("ERROR: Player not found or missing start_music method")
