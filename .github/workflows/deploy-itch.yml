@@ -1,36 +1,60 @@
 name: Deploy to Itch.io
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: Web                         # use your Environment name here
     container:
-      image: barichello/godot-ci:latest   # <- Docker Hub, not ghcr
+      image: barichello/godot-ci:4.5-stable
+    defaults:
+      run:
+        shell: bash
     env:
       EXPORT_PRESET: "Web"
       ITCH_TARGET: "${{ secrets.ITCH_GAME_URL }}:html5"
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+
     steps:
       - uses: actions/checkout@v4
-      - run: |
+
+      - name: Preflight
+        run: |
+          set -euo pipefail
+          [[ -n "${ITCH_TARGET:-}" ]] || { echo "Missing ITCH_GAME_URL (in Environment 'Web')"; exit 1; }
+          [[ -n "${BUTLER_API_KEY:-}" ]] || { echo "Missing BUTLER_API_KEY (in Environment 'Web')"; exit 1; }
           godot --version || true
           butler -V || true
-      - run: |
+
+      - name: Export HTML5
+        run: |
           set -euo pipefail
           mkdir -p build
           godot --headless --path . --export-release "$EXPORT_PRESET" "build/index.html"
-      - run: |
+          ls -la build
+
+      - name: Zip build
+        run: |
           set -euo pipefail
           cd build && zip -qr forecast_sanjii_web.zip .
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: html5-build
           path: build/forecast_sanjii_web.zip
           if-no-files-found: error
-      - run: |
+          retention-days: 7
+
+      - name: Push to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
           set -euo pipefail
           VERSION="${GITHUB_RUN_NUMBER}.${GITHUB_SHA::7}"
           butler push build/forecast_sanjii_web.zip "$ITCH_TARGET" --userversion "$VERSION"
