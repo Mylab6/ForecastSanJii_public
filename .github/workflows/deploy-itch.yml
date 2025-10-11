@@ -9,7 +9,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment:
-      name: Web                         # use your Environment name here
+      name: Web
     container:
       image: barichello/godot-ci:latest
     defaults:
@@ -26,10 +26,42 @@ jobs:
       - name: Preflight
         run: |
           set -euo pipefail
-          [[ -n "${ITCH_TARGET:-}" ]] || { echo "Missing ITCH_GAME_URL (in Environment 'Web')"; exit 1; }
-          [[ -n "${BUTLER_API_KEY:-}" ]] || { echo "Missing BUTLER_API_KEY (in Environment 'Web')"; exit 1; }
-          godot --version || true
-          butler -V || true
+          [[ -n "${ITCH_TARGET:-}" ]] || { echo "Missing ITCH_GAME_URL (env: Web)"; exit 1; }
+          [[ -n "${BUTLER_API_KEY:-}" ]] || { echo "Missing BUTLER_API_KEY (env: Web)"; exit 1; }
+          godot --version
+          butler -V
+
+      - name: Make export templates visible to Godot
+        run: |
+          set -euo pipefail
+          SRC="/root/.local/share/godot/export_templates"
+          DST="$HOME/.local/share/godot/export_templates"
+          if [[ -d "$SRC" ]]; then
+            mkdir -p "$DST"
+            cp -a "$SRC/"* "$DST/"
+          fi
+          echo "After copy, template dir:"
+          find "$DST" -maxdepth 2 -type f -name 'web*_release.zip' -o -name 'web*_debug.zip' | sed 's/^/  /' || true
+
+      - name: Ensure 4.5 export templates exist
+        run: |
+          set -euo pipefail
+          VER="4.5"
+          VERDIR="${VER}.stable"
+          DST="$HOME/.local/share/godot/export_templates/${VERDIR}"
+          if [[ -f "${DST}/web_nothreads_release.zip" || -f "${DST}/web_release.zip" ]]; then
+            echo "Templates present."
+          else
+            BASE="https://downloads.tuxfamily.org/godotengine/${VER}"
+            mkdir -p "$DST"
+            curl -sSL -o /tmp/templates.tpz "${BASE}/Godot_v${VER}-stable_export_templates.tpz"
+            TMPDIR="$(mktemp -d)"
+            unzip -q /tmp/templates.tpz -d "$TMPDIR"
+            shopt -s dotglob
+            mv "$TMPDIR/templates/"* "$DST/"
+            rm -rf "$TMPDIR" /tmp/templates.tpz
+            echo "Installed templates to $DST"
+          fi
 
       - name: Export HTML5
         run: |
