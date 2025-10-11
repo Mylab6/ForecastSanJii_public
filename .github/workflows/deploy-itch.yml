@@ -5,57 +5,56 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# optional but nice to avoid parallel pushes clobbering each other
+concurrency:
+  group: itchio-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # run the whole job inside the prebuilt CI image (like GitLab does)
+    container: ghcr.io/abarichello/godot-ci:4.5-stable
+    env:
+      EXPORT_PRESET: "Web"              # must match your export_presets.cfg preset name
+      ITCH_TARGET: "${{ secrets.ITCH_GAME_URL }}:html5"  # e.g. user/my-game:html5
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Export Web Build
-      uses: abarichello/godot-ci@4.5-stable
-      run: |
-        mkdir -p build
-        godot --headless --export-release "Web" build/ForcastSanJii.html
-        # Check if export was successful
-        if [ ! -f "build/ForcastSanJii.html" ]; then
-          echo "Export failed - HTML file not found"
-          exit 1
-        fi
+      - name: Show tool versions
+        run: |
+          godot --version || true
+          butler -V || true
 
-    - name: Package Web Build into Zip
-      run: |
-        cd build/
-        # Verify all required files exist before zipping
-        for file in ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck; do
-          if [ ! -f "$file" ]; then
-            echo "Missing file: $file"
-            exit 1
-          fi
-        done
-        # Package the Godot web build into a zip file
-        zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck ForcastSanJii.png ForcastSanJii.apple-touch-icon.png 2>/dev/null || zip forecast_sanjii_web.zip ForcastSanJii.html ForcastSanJii.js ForcastSanJii.wasm ForcastSanJii.pck
+      - name: Export HTML5 build
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          # Export as index.html for itch.io
+          godot --headless --path . --export-release "$EXPORT_PRESET" "build/index.html"
+          ls -la build
 
-    - name: Upload HTML5 Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: html5-build
-        path: build/forecast_sanjii_web.zip
+      - name: Zip build
+        run: |
+          set -euo pipefail
+          cd build
+          # zip everything Godot exported; index.html must be at the root
+          zip -qr forecast_sanjii_web.zip .
 
-    - name: Install Butler
-      run: |
-        curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
-        unzip butler.zip
-        chmod +x butler
-        sudo mv butler /usr/local/bin
+      - name: Upload artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: html5-build
+          path: build/forecast_sanjii_web.zip
+          if-no-files-found: error
+          retention-days: 7
 
-    - name: Login to Butler
-      run: butler login
-      env:
-        BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-
-    - name: Push HTML5 build to itch.io
-      run: butler push build/forecast_sanjii_web.zip ${{ secrets.ITCH_GAME_URL }}:html5 --userversion ${{ github.run_number }}
-      env:
-        BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+      # No 'butler login' — CI uses BUTLER_API_KEY non-interactively
+      - name: Push to itch.io
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_RUN_NUMBER}.${GITHUB_SHA::7}"
+          butler push build/forecast_sanjii_web.zip "$ITCH_TARGET" --userversion "$VERSION"
