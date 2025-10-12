@@ -25,15 +25,19 @@ func _scan_music_folder():
 	"""Scan the music folder for .mp3 and .ogg files"""
 	music_files.clear()
 
-	var dir = DirAccess.open(music_folder)
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if file_name.ends_with(".mp3") or file_name.ends_with(".ogg"):
-				music_files.append(file_name)
-			file_name = dir.get_next()
-		dir.list_dir_end()
+	# Hardcode the known music files since DirAccess doesn't work in exports
+	var known_files = [
+		"Rolling Clouds.mp3",
+		"Rolling Clouds.ogg",
+		"Moonlit sky.mp3",
+		"Moonlit sky.ogg"
+	]
+	
+	# Check which ones actually exist
+	for file_name in known_files:
+		var track_path = music_folder + "/" + file_name
+		if ResourceLoader.exists(track_path):
+			music_files.append(file_name)
 
 	print("Found ", music_files.size(), " music files: ", music_files)
 
