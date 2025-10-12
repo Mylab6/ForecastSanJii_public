@@ -10,7 +10,7 @@ var sweep_angle: float = 0.0
 var sweep_speed: float = 0.05  # Much slower - realistic 10+ minute rotation like real WSR-88D
 var radar_center: Vector2
 var radar_radius: float
-var radar_radius_multiplier: float = 0.45  # Configurable radius multiplier
+var radar_radius_multiplier: float = 0.55  # Baseline radar coverage fraction of viewport
 var beam_width: float = 0.03  # Narrower beam for precision
 
 # Echo system
@@ -24,6 +24,7 @@ var start_time: float
 # Display properties
 var persistence_trails: Array[PersistenceTrail] = []
 var max_persistence_trails: int = 120  # Longer trail history for smoother sweep
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 # Map integration
 var map_texture: Texture2D
@@ -68,6 +69,8 @@ class PersistenceTrail:
 func _ready():
 	print("Real radar system initializing...")
 	_setup_radar_display()
+	# Initialize RNG for non-deterministic patterns each run (randomize so weather changes each round)
+	_rng.randomize()
 	start_time = Time.get_ticks_msec() / 1000.0
 	# Initialize city emergency status
 	var cities = CityWeatherData.get_all_cities()
@@ -124,7 +127,7 @@ func _setup_radar_display():
 	fit_radar_to_all_cities()
 
 
-func fit_radar_to_all_cities(padding_norm: float = 0.05) -> void:
+func fit_radar_to_all_cities(padding_norm: float = 0.08) -> void:
 	"""Adjust radar_center and radar_radius so all cities are inside the radar scope.
 	Positions in CityWeatherData are normalized (0..1). padding_norm is added in normalized units."""
 	# Ensure city data is loaded
@@ -160,7 +163,10 @@ func fit_radar_to_all_cities(padding_norm: float = 0.05) -> void:
 	# convert to pixels using the smaller display dimension for a circular radar
 	var min_display = min(display_size.x, display_size.y)
 	radar_center = Vector2(center_norm.x * display_size.x, center_norm.y * display_size.y)
-	radar_radius = clamp(maxd * min_display, 50.0, min_display * 0.5)
+
+	var computed_radius = maxd * min_display
+	var baseline_radius = min_display * radar_radius_multiplier
+	radar_radius = clamp(max(computed_radius, baseline_radius), 50.0, min_display * 0.6)
 
 
 func _generate_sample_weather():
@@ -169,12 +175,13 @@ func _generate_sample_weather():
 	
 	# Create some test weather echoes
 	for i in range(15):
-		var angle = randf() * TAU
-		var distance = randf() * 0.8  # Keep within radar range
+		var angle = _rng.randf() * TAU
+		var distance = _rng.randf() * 0.8  # Keep within radar range
 		var pos = Vector2(cos(angle), sin(angle)) * distance
 		pos = (pos + Vector2.ONE) * 0.5  # Convert to 0-1 range
 		
-		var echo = WeatherEcho.new(pos, randf() * 0.8 + 0.2, randf() * 0.05 + 0.02, 30.0, Vector2.ZERO, "test")
+		var echo = WeatherEcho.new(pos, _rng.randf() * 0.8 + 0.2, _rng.randf() * 0.05 + 0.02, 30.0, Vector2.ZERO, "test")
+		echo.random_seed = _rng.randi()
 		weather_targets.append(echo)
 
 func _process(delta):
@@ -356,23 +363,33 @@ func _draw_weather_echoes():
 			var faded_color = Color(base_color.r, base_color.g, base_color.b, base_color.a * echo.current_alpha)
 			
 			# Draw DENSE, SMALL, OVERLAPPING echoes like real radar
-			_draw_dense_precipitation_pattern(screen_pos, echo.weather_source.size, echo.intensity, faded_color)
+			_draw_dense_precipitation_pattern(echo.weather_source, screen_pos, echo.intensity, faded_color)
 
-func _draw_dense_precipitation_pattern(center_pos: Vector2, weather_size: float, intensity: float, color: Color):
+func _draw_dense_precipitation_pattern(weather: WeatherEcho, center_pos: Vector2, intensity: float, color: Color):
 	"""Draw precipitation pattern with configurable shapes"""
 	# Calculate pattern area based on weather size
-	var pattern_radius = weather_size * radar_radius * 0.12
+	var pattern_radius = weather.size * radar_radius * 0.12
 	
 	# Much fewer echoes - clean and simple like real radar
 	var num_echoes = int(3 + intensity * 8)  # Only 3-11 small echoes per weather system
 	
 	# Moderate echo size 
-	var base_echo_size = 3.0 + intensity * 5.0  # 3-8 pixel radius
+	var base_echo_size = (3.0 + intensity * 5.0) * (0.7 + weather.size * 0.3)  # Scale with storm size
 	
-	# Use position as seed for consistent pattern per weather system
-	var seed_val = int(center_pos.x * 1000 + center_pos.y * 1000)
+	# Use the weather echo's seed so each storm has a unique but stable pattern
+	var seed_val = weather.random_seed
+	if seed_val == 0:
+		seed_val = _fallback_seed_for_weather(weather)
 	var rng = RandomNumberGenerator.new()
 	rng.seed = seed_val
+
+	# Apply a gentle wobble so precipitation drifts slowly instead of shaking
+	var time_seconds = Time.get_ticks_msec() / 1000.0
+	var wobble_phase = float(seed_val % 1024) * 0.01
+	var wobble_radius = min(pattern_radius * 0.12, 6.0)
+	var wobble_speed = 0.2  # radians per second
+	var wobble = Vector2(cos(time_seconds * wobble_speed + wobble_phase), sin(time_seconds * wobble_speed + wobble_phase)) * wobble_radius
+	var adjusted_center = center_pos + wobble
 	
 	# Draw main weather area with soft fill based on shape
 	var main_alpha = color.a * 0.3
@@ -380,13 +397,13 @@ func _draw_dense_precipitation_pattern(center_pos: Vector2, weather_size: float,
 	
 	match current_echo_shape:
 		EchoShape.CIRCLE:
-			draw_circle(center_pos, pattern_radius * 0.7, main_color)
+			draw_circle(adjusted_center, pattern_radius * 0.7, main_color)
 		EchoShape.BOX:
 			var box_size = pattern_radius * 1.4  # Make box roughly equivalent area
-			var box_rect = Rect2(center_pos - Vector2(box_size/2, box_size/2), Vector2(box_size, box_size))
+			var box_rect = Rect2(adjusted_center - Vector2(box_size/2, box_size/2), Vector2(box_size, box_size))
 			draw_rect(box_rect, main_color)
 		EchoShape.BLOB:
-			_draw_blob_shape(center_pos, pattern_radius * 0.7, main_color, rng)
+			_draw_blob_shape(adjusted_center, pattern_radius * 0.7, main_color, rng)
 	
 	# Add scattered discrete echoes for detail
 	for i in range(num_echoes):
@@ -395,7 +412,7 @@ func _draw_dense_precipitation_pattern(center_pos: Vector2, weather_size: float,
 		var distance_factor = pow(rng.randf(), 0.4)  # Bias toward center
 		var offset_distance = distance_factor * pattern_radius
 		
-		var echo_pos = center_pos + Vector2(cos(angle), sin(angle)) * offset_distance
+		var echo_pos = adjusted_center + Vector2(cos(angle), sin(angle)) * offset_distance
 		
 		# Vary echo size slightly
 		var echo_size = base_echo_size * (0.8 + rng.randf() * 0.4)
@@ -632,10 +649,27 @@ func _draw_city_marker_with_temp(marker_position: Vector2, city_name: String, te
 	# Temperature (yellow)
 	draw_string(font, temp_pos, temp_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.YELLOW)
 
+func _fallback_seed_for_weather(weather: WeatherEcho) -> int:
+	"""Provide a deterministic seed when a weather echo lacks one"""
+	var px = int(round(weather.position.x * 10000.0))
+	var py = int(round(weather.position.y * 10000.0))
+	var intensity_hash = int(round(weather.intensity * 1000.0))
+	var size_hash = int(round(weather.size * 1000.0))
+	var hash_value = px * 73856093 ^ py * 19349663 ^ intensity_hash * 83492791 ^ size_hash * 2654435761
+	if hash_value == 0:
+		hash_value = 2025
+	return abs(hash_value) % 2147483647
+
 # Public interface
 func set_weather_targets(targets: Array[WeatherEcho]):
 	"""Set the weather targets for radar detection"""
 	weather_targets = targets
+	for weather in weather_targets:
+		if weather.random_seed == 0:
+			weather.random_seed = _fallback_seed_for_weather(weather)
+	if is_inside_tree():
+		fit_radar_to_all_cities()
+		queue_redraw()
 
 func set_radius_multiplier(multiplier: float):
 	"""Set the radar radius multiplier"""

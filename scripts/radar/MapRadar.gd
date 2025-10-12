@@ -56,6 +56,9 @@ func _ready():
 	print("Generating random hex map...")
 	map_texture = OSMMapRenderer.generate_game_map(Vector2i(800, 600))
 	
+	# Clear cached city data so this map's cities repopulate on land
+	CityWeatherData.reset_data()
+	
 	# Initialize city temperature data AFTER map generation
 	CityWeatherData.initialize_temperatures()
 	

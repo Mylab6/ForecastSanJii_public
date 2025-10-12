@@ -10,6 +10,7 @@ var age: float            # Time since echo was created
 var max_age: float        # Maximum age before echo expires
 var velocity: Vector2     # Movement vector for storm motion
 var echo_type: String     # "light", "moderate", "heavy", "severe"
+var random_seed: int = 0  # Stable seed for rendering jitter-free patterns
 
 func _init(pos: Vector2 = Vector2.ZERO, intens: float = 0.5, echo_size: float = 1.0, 
            max_lifetime: float = 10.0, vel: Vector2 = Vector2.ZERO, type: String = "moderate"):
@@ -20,6 +21,7 @@ func _init(pos: Vector2 = Vector2.ZERO, intens: float = 0.5, echo_size: float = 
 	max_age = max_lifetime
 	velocity = vel
 	echo_type = type
+	random_seed = _build_seed_from_properties(pos, intens, echo_size)
 
 func update(delta: float):
 	"""Update echo age and position"""
@@ -68,4 +70,16 @@ func duplicate_echo() -> WeatherEcho:
 	"""Create a copy of this echo"""
 	var copy = WeatherEcho.new(position, intensity, size, max_age, velocity, echo_type)
 	copy.age = age
+	copy.random_seed = random_seed
 	return copy
+
+func _build_seed_from_properties(pos: Vector2, intens: float, echo_size: float) -> int:
+	"""Derive a deterministic seed from echo properties when one is not provided"""
+	var px = int(round(pos.x * 10000.0))
+	var py = int(round(pos.y * 10000.0))
+	var i_hash = int(round(intens * 1000.0))
+	var size_hash = int(round(echo_size * 1000.0))
+	var hash_value = px * 73856093 ^ py * 19349663 ^ i_hash * 83492791 ^ size_hash * 2654435761
+	if hash_value == 0:
+		hash_value = 1337  # Avoid zero seeds for RNG stability
+	return abs(hash_value) % 2147483647

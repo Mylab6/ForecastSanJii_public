@@ -9,6 +9,7 @@ static var city_positions: Dictionary = {}  # city_name -> Vector2 position
 static func generate_cities_on_land(island_centers: Array, image_size: Vector2i, hex_radius: int) -> Array:
 	"""Generate cities only on verified land hexes with proper spacing"""
 	var cities = []
+	city_positions.clear()
 	var city_names = [
 		"Flying Fish Cove",
 		"Silver City", 

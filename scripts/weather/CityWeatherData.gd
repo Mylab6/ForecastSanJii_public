@@ -7,6 +7,12 @@ static var city_data = {}
 static var city_metadata = {}
 static var json_loaded = false
 
+static func reset_data():
+	"""Clear cached city data so a new map can repopulate fresh positions"""
+	city_data.clear()
+	city_metadata.clear()
+	json_loaded = false
+
 static func load_cities_from_json():
 	"""Load city data from cities.json file"""
 	if json_loaded:

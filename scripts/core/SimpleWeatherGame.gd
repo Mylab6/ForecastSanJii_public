@@ -49,7 +49,7 @@ func _on_mute_button_pressed():
 		
 	if current_volume > -40:  # If volume is audible
 		AudioServer.set_bus_volume_db(master_bus, -80.0)  # Set to silent
-		mute_button.text = "🔇 Music (Off)"
+		mute_button.text = "X Music (Off)"
 		print("Volume set to 0")
 	else:
 		AudioServer.set_bus_volume_db(master_bus, 0.0)  # Set to max

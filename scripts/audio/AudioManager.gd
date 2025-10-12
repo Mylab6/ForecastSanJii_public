@@ -1,16 +1,21 @@
 extends Node
+# Dev Assistant — optimized + HTML5-safe, Godot 3.x/4.x compatible
 
-# Simple Audio manager for background music and SFX.
-# Usage: add this node to a running scene (or make it an Autoload) and call play_music/play_sfx/play_alert.
-
+# --- Players ---
 var music_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
 var alert_player: AudioStreamPlayer
+var _unlock_player: AudioStreamPlayer            # one-shot WebAudio unlock
+
+# --- Defaults (set if files exist) ---
 var default_news_music: String = ""
 var default_news_alert: String = ""
 
-func _ready():
-	# create players at runtime so this script can be dropped in anywhere
+# --- State ---
+var _audio_unlocked: bool = false
+
+func _ready() -> void:
+	# Players
 	music_player = AudioStreamPlayer.new()
 	add_child(music_player)
 
@@ -20,37 +25,50 @@ func _ready():
 	alert_player = AudioStreamPlayer.new()
 	add_child(alert_player)
 
-	# default resource paths (override if you want different files)
-	# Chosen defaults
-	# Music: use Rolling Clouds if available
-	if ResourceLoader.exists("res://assets/audio/ws4kp-music/Rolling Clouds.mp3"):
-		default_news_music = "res://assets/audio/ws4kp-music/Rolling Clouds.mp3"
-	elif ResourceLoader.exists("res://assets/audio/ws4kp-music/Moonlit sky.mp3"):
-		default_news_music = "res://assets/audio/ws4kp-music/Moonlit sky.mp3"
-	else:
-		default_news_music = ""
+	# One-shot unlock player using an AudioStreamGenerator
+	_unlock_player = AudioStreamPlayer.new()
+	_unlock_player.stream = _make_generator_stream(44100.0)
+	add_child(_unlock_player)
 
-	# Alert: use the imported bong_001.ogg if present
-	var candidate_alert = "res://.godot/imported/bong_001.ogg-2f4c33f80113bd63dad84b30f697decf.oggvorbisstr"
-	if ResourceLoader.exists(candidate_alert):
-		default_news_alert = candidate_alert
-	else:
-		# fallback to a click or confirmation if bong is not present
-		if ResourceLoader.exists("res://.godot/imported/click_001.ogg-cbe2013b9bbbeb1ba62f9edce618becd.oggvorbisstr"):
-			default_news_alert = "res://.godot/imported/click_001.ogg-cbe2013b9bbbeb1ba62f9edce618becd.oggvorbisstr"
-		elif ResourceLoader.exists("res://.godot/imported/confirmation_001.ogg-4c676d0550252e26ca9d8c94b1fe3417.oggvorbisstr"):
-			default_news_alert = "res://.godot/imported/confirmation_001.ogg-4c676d0550252e26ca9d8c94b1fe3417.oggvorbisstr"
-		else:
-			default_news_alert = ""
+	# Defaults (ALWAYS original res:// paths, never .godot/imported)
+	default_news_music = _first_existing([
+		"res://assets/audio/ws4kp-music/Rolling Clouds.ogg",
+		"res://assets/audio/ws4kp-music/Moonlit sky.ogg",
+		"res://assets/audio/ws4kp-music/Rolling Clouds.mp3",
+		"res://assets/audio/ws4kp-music/Moonlit sky.mp3",
+	])
+
+	default_news_alert = _first_existing([
+		"res://assets/audio/sfx/bong_001.ogg",
+		"res://assets/audio/sfx/click_001.ogg",
+		"res://assets/audio/sfx/confirmation_001.ogg",
+	])
+
+	# Capture first user gesture for web autoplay – use _input so UI events count
+	set_process_input(true)
+
+func _input(e: InputEvent) -> void:
+	if not _audio_unlocked and e.is_pressed():
+		unlock_audio()
+		set_process_input(false)
+
+# Call from a UI button too (e.g., “Tap to enable sound”)
+func unlock_audio() -> void:
+	if _audio_unlocked:
+		return
+	_audio_unlocked = true
+	if _is_web():
+		_unlock_player.play()
+		var pb = _unlock_player.get_stream_playback()
+		if pb and pb is AudioStreamGeneratorPlayback:
+			_push_silence_frames(pb, 2048) # Fill buffer while active
+		call_deferred("_stop_unlock_player")
+
+# ------------------ Public API ------------------
 
 func play_music(path: String) -> void:
-	"""Play a music stream (path to res:// or user path). Replaces current music."""
-	if not path or not ResourceLoader.exists(path):
-		push_warning("AudioManager: music resource not found: %s" % path)
-		return
-	var res = ResourceLoader.load(path)
-	if not res:
-		push_warning("AudioManager: music resource not found: %s" % path)
+	var res: AudioStream = _load(path)
+	if res == null or not _can_play_now():
 		return
 	music_player.stream = res
 	music_player.play()
@@ -60,30 +78,26 @@ func stop_music() -> void:
 		music_player.stop()
 
 func play_sfx(path: String) -> void:
-	"""Play a short sound effect. Uses a dedicated SFX player."""
-	if not path or not ResourceLoader.exists(path):
-		push_warning("AudioManager: sfx resource not found: %s" % path)
+	var res: AudioStream = _load(path)
+	if res == null or not _can_play_now():
 		return
-	var res = ResourceLoader.load(path)
 	sfx_player.stream = res
 	sfx_player.play()
 
 func play_alert(path: String) -> void:
-	"""Play an alert sound; does not stop music by default (keeps it simple)."""
-	if not path or not ResourceLoader.exists(path):
-		push_warning("AudioManager: alert resource not found: %s" % path)
+	var res: AudioStream = _load(path)
+	if res == null or not _can_play_now():
 		return
-	var res = ResourceLoader.load(path)
 	alert_player.stream = res
 	alert_player.play()
 
-func play_default_news_music():
+func play_default_news_music() -> void:
 	if default_news_music != "":
 		play_music(default_news_music)
 	else:
 		push_warning("AudioManager: no default news music set")
 
-func play_default_news_alert():
+func play_default_news_alert() -> void:
 	if default_news_alert != "":
 		play_alert(default_news_alert)
 	else:
@@ -91,3 +105,51 @@ func play_default_news_alert():
 
 func set_master_volume_db(db: float) -> void:
 	AudioServer.set_bus_volume_db(0, db)
+
+# ------------------ Internals ------------------
+
+func _is_web() -> bool:
+	# Godot 4: "web", Godot 3: "HTML5"
+	return OS.has_feature("web") or OS.has_feature("HTML5")
+
+func _can_play_now() -> bool:
+	if _is_web() and not _audio_unlocked:
+		push_warning("Audio blocked by browser until user gesture. Call unlock_audio() or click/tap once.")
+		return false
+	return true
+
+func _load(path: String) -> AudioStream:
+	if path == "" or not ResourceLoader.exists(path):
+		push_warning("AudioManager: not found: %s" % path)
+		return null
+	var res: Resource = ResourceLoader.load(path)
+	if res == null:
+		push_warning("AudioManager: failed to load: %s" % path)
+		return null
+	return res as AudioStream
+
+func _first_existing(paths: Array) -> String:
+	for p in paths:
+		if ResourceLoader.exists(p):
+			return p
+	return ""
+
+func _make_generator_stream(mix_rate: float) -> AudioStreamGenerator:
+	var gen = AudioStreamGenerator.new()
+	gen.mix_rate = mix_rate
+	# small buffer; we only use it to nudge the context
+	if "buffer_length" in gen:
+		gen.buffer_length = 0.05
+	return gen
+
+func _push_silence_frames(pb: AudioStreamGeneratorPlayback, frames: int) -> void:
+	# Works on Godot 3.x and 4.x (push_frame exists in both)
+	for i in range(frames):
+		if pb.can_push_buffer():
+			pb.push_frame(Vector2(0.0, 0.0))
+		else:
+			break
+
+func _stop_unlock_player() -> void:
+	if _unlock_player and _unlock_player.playing:
+		_unlock_player.stop()
