@@ -52,17 +52,20 @@ func _input(e: InputEvent) -> void:
 		unlock_audio()
 		set_process_input(false)
 
-# Call from a UI button too (e.g., “Tap to enable sound”)
+# Call from a UI button too (e.g., "Tap to enable sound")
 func unlock_audio() -> void:
 	if _audio_unlocked:
 		return
 	_audio_unlocked = true
 	if _is_web():
-		_unlock_player.play()
-		var pb = _unlock_player.get_stream_playback()
-		if pb and pb is AudioStreamGeneratorPlayback:
-			_push_silence_frames(pb, 2048) # Fill buffer while active
-		call_deferred("_stop_unlock_player")
+		# Simple approach: just play and immediately stop a regular player to wake WebAudio
+		# Use the sfx_player with a minimal silent stream instead of generator
+		var silent_stream = AudioStreamGenerator.new()
+		silent_stream.mix_rate = 22050.0
+		silent_stream.buffer_length = 0.1
+		sfx_player.stream = silent_stream
+		sfx_player.play()
+		sfx_player.stop()
 
 # ------------------ Public API ------------------
 
@@ -76,6 +79,9 @@ func play_music(path: String) -> void:
 func stop_music() -> void:
 	if music_player:
 		music_player.stop()
+
+func is_music_playing() -> bool:
+	return music_player != null and music_player.playing
 
 func play_sfx(path: String) -> void:
 	var res: AudioStream = _load(path)
@@ -145,7 +151,7 @@ func _make_generator_stream(mix_rate: float) -> AudioStreamGenerator:
 func _push_silence_frames(pb: AudioStreamGeneratorPlayback, frames: int) -> void:
 	# Works on Godot 3.x and 4.x (push_frame exists in both)
 	for i in range(frames):
-		if pb.can_push_buffer():
+		if pb.can_push_buffer(1):
 			pb.push_frame(Vector2(0.0, 0.0))
 		else:
 			break
