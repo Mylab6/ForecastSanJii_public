@@ -11,7 +11,7 @@ jobs:
     environment:
       name: Web
     container:
-      image: barichello/godot-ci:latest
+      image: barichello/godot-ci:4.5
     defaults:
       run:
         shell: bash
