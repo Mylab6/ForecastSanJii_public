@@ -1,5 +1,5 @@
 name: Deploy to Itch.io
-
+#Nake sure to have a web export preset named "Web" in your project settings.
 on:
   push:
     branches: [ main ]
